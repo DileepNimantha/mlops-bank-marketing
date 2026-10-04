@@ -3,7 +3,7 @@ import pandera.errors
 import pytest
 
 from src.config import load_params
-from src.data import FEATURES, build_sets, validate
+from src.data import FEATURES, build_sets, load_production, validate
 
 
 def test_contract_accepts_valid_rows(rows):
@@ -25,6 +25,12 @@ def test_contract_rejects_unknown_category(rows):
 def test_leakage_column_is_never_a_feature():
     for column in load_params()["data"]["drop_columns"]:
         assert column not in FEATURES
+
+
+def test_missing_production_file_means_no_labelled_production_data(tmp_path):
+    production_path = tmp_path / "production" / "labelled.csv"
+
+    assert load_production(production_path).empty
 
 
 def test_first_model_uses_history_only(rows):

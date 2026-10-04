@@ -67,6 +67,13 @@ def load_raw(path) -> pd.DataFrame:
     return df
 
 
+def load_production(path) -> pd.DataFrame:
+    """Load labelled production data, or return empty data before the first deployment."""
+    if not path.exists():
+        return pd.DataFrame()
+    return pd.read_csv(path)
+
+
 def validate(df: pd.DataFrame) -> pd.DataFrame:
     """Check the features against the contract. Raises pandera.errors.SchemaError on bad data."""
     checked = FEATURE_SCHEMA.validate(df[FEATURES])
@@ -99,7 +106,7 @@ def build_sets(raw: pd.DataFrame, production: pd.DataFrame, p: dict):
 def main() -> None:
     p = load_params()["data"]
     raw = validate(load_raw(ROOT / p["raw"]))
-    production = pd.read_csv(ROOT / p["production"])
+    production = load_production(ROOT / p["production"])
     if len(production):
         production = validate(production.sort_values("timestamp"))
     leaked = set(p["drop_columns"]) & set(raw.columns)
